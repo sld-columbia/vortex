@@ -10,19 +10,19 @@
 `endif
 
 `ifndef NUM_CORES
-`define NUM_CORES 1
+`define NUM_CORES 1 //1 works now
 `endif
 
 `ifndef NUM_WARPS
-`define NUM_WARPS 4
+`define NUM_WARPS 2 //2 works now
 `endif
 
 `ifndef NUM_THREADS
-`define NUM_THREADS 4
+`define NUM_THREADS 4 //4works now
 `endif
 
 `ifndef NUM_BARRIERS
-`define NUM_BARRIERS 4
+`define NUM_BARRIERS 2 //2 works now
 `endif
 
 `ifndef L2_ENABLE
@@ -38,7 +38,7 @@
 `endif
 
 `ifndef MEM_BLOCK_SIZE
-`define MEM_BLOCK_SIZE 64
+`define MEM_BLOCK_SIZE 8
 `endif
 
 `ifndef L1_BLOCK_SIZE
@@ -46,19 +46,19 @@
 `endif
 
 `ifndef STARTUP_ADDR
-`define STARTUP_ADDR 32'h80000000
+`define STARTUP_ADDR 32'h00000000 // Originally 0x80000000
 `endif
 
 `ifndef IO_BASE_ADDR
-`define IO_BASE_ADDR 32'hFF000000
+`define IO_BASE_ADDR 32'h0FF00000
 `endif
 
 `ifndef IO_ADDR_SIZE
-`define IO_ADDR_SIZE (32'hFFFFFFFF - `IO_BASE_ADDR + 1)
+`define IO_ADDR_SIZE (32'h0FFFFFFF - `IO_BASE_ADDR + 1)
 `endif
 
 `ifndef IO_COUT_ADDR
-`define IO_COUT_ADDR (32'hFFFFFFFF - `MEM_BLOCK_SIZE + 1)
+`define IO_COUT_ADDR (32'h0FFFFFFF - `MEM_BLOCK_SIZE + 1)
 `endif
 
 `ifndef IO_COUT_SIZE
@@ -124,7 +124,7 @@
 `define LATENCY_FCVT 5
 `endif
 
-`define RESET_DELAY 6
+`define RESET_DELAY 12
 
 // CSR Addresses //////////////////////////////////////////////////////////////
 
@@ -299,7 +299,7 @@
 
 // Size of cache in bytes
 `ifndef ICACHE_SIZE
-`define ICACHE_SIZE 16384
+`define ICACHE_SIZE 16384 //16384
 `endif
 
 // Core Request Queue Size
@@ -331,7 +331,7 @@
 
 // Size of cache in bytes
 `ifndef DCACHE_SIZE
-`define DCACHE_SIZE 16384
+`define DCACHE_SIZE 16384 // 16384
 `endif
 
 // Number of banks
@@ -373,7 +373,7 @@
 
 // per thread stack size
 `ifndef STACK_LOG2_SIZE
-`define STACK_LOG2_SIZE 10
+`define STACK_LOG2_SIZE 13
 `endif
 `define STACK_SIZE (1 << `STACK_LOG2_SIZE)
 
