@@ -1,16 +1,16 @@
 all:
-	$(MAKE) -C basic
-	$(MAKE) -C demo
-	$(MAKE) -C dogfood
-	$(MAKE) -C mstress
-	$(MAKE) -C io_addr
-	$(MAKE) -C printf
-	$(MAKE) -C diverge
-	$(MAKE) -C sort
-	$(MAKE) -C fence
-	$(MAKE) -C no_mf_ext
-	$(MAKE) -C no_smem
-	$(MAKE) -C prefetch
+	$(MAKE) CXX=$(CXX) -C basic
+	$(MAKE) CXX=$(CXX) -C demo
+	$(MAKE) CXX=$(CXX) -C dogfood
+	$(MAKE) CXX=$(CXX) -C mstress
+	$(MAKE) CXX=$(CXX) -C io_addr
+	$(MAKE) CXX=$(CXX) -C printf
+	$(MAKE) CXX=$(CXX) -C diverge
+	$(MAKE) CXX=$(CXX) -C sort
+	$(MAKE) CXX=$(CXX) -C fence
+	$(MAKE) CXX=$(CXX) -C no_mf_ext
+	$(MAKE) CXX=$(CXX) -C no_smem
+	$(MAKE) CXX=$(CXX) -C prefetch
 
 run-simx:
 	$(MAKE) -C basic run-simx

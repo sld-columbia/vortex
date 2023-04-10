@@ -1,19 +1,19 @@
 all: runtime regression opencl riscv unittest
 
 runtime:
-	$(MAKE) -C runtime
+	$(MAKE) CXX=$(CXX) -C runtime
 
 regression:
-	$(MAKE) -C regression
+	$(MAKE) CXX=$(CXX) -C regression
 
 opencl:
-	$(MAKE) -C opencl
+	$(MAKE) CXX=$(CXX) -C opencl
 
 riscv:
-	$(MAKE) -C riscv
+	$(MAKE) CXX=$(CXX) -C riscv
 
 unittest:
-	$(MAKE) -C unittest
+	$(MAKE) CXX=$(CXX) -C unittest
 
 clean:
 	$(MAKE) clean -C runtime
