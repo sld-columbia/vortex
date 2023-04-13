@@ -16,13 +16,13 @@ VX_CFLAGS += -I$(VORTEX_RT_PATH)/include -I$(VORTEX_RT_PATH)/../hw
 
 VX_LDFLAGS += -Wl,-Bstatic,-T,$(VORTEX_RT_PATH)/linker/vx_link$(XLEN).ld -Wl,--gc-sections $(VORTEX_RT_PATH)/libvortexrt.a
 
-VX_SRCS = kernel.c
+VX_SRCS = basic.c
 
 CXXFLAGS += -std=c++11 -Wall -Wextra -pedantic -Wfatal-errors
 
 CXXFLAGS += -I$(VORTEX_DRV_PATH)/include
 
-LDFLAGS += -L$(VORTEX_DRV_PATH)/stub -lvortex
+LDFLAGS += -L$(VORTEX_DRV_PATH)/esp -lvortex
 
 # Debugigng
 ifdef DEBUG
@@ -35,33 +35,33 @@ PROJECT = basic
 
 SRCS = main.cpp
 
-all: $(PROJECT) kernel.bin kernel.dump
+all: $(PROJECT) basic.bin basic.dump
 
-kernel.dump:  kernel.elf
-	$(VX_DP) -D  kernel.elf > kernel.dump
+basic.dump:  basic.elf
+	$(VX_DP) -D  basic.elf > basic.dump
 
-kernel.bin:  kernel.elf
-	$(VX_CP) -O binary kernel.elf kernel.bin
+basic.bin:  basic.elf
+	$(VX_CP) -O binary basic.elf basic.bin
 
-kernel.elf: $(VX_SRCS)
-	$(VX_CC) $(VX_CFLAGS) $(VX_SRCS) $(VX_LDFLAGS) -o kernel.elf
+basic.elf: $(VX_SRCS)
+	$(VX_CC) $(VX_CFLAGS) $(VX_SRCS) $(VX_LDFLAGS) -o basic.elf
 
 $(PROJECT): $(SRCS)
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
 
-run-simx: $(PROJECT) kernel.bin   
+run-simx: $(PROJECT) basic.bin   
 	LD_LIBRARY_PATH=$(POCL_RT_PATH)/lib:$(VORTEX_DRV_PATH)/simx:$(LD_LIBRARY_PATH) ./$(PROJECT) $(OPTS)
 	
-run-fpga: $(PROJECT) kernel.bin   
+run-fpga: $(PROJECT) basic.bin   
 	LD_LIBRARY_PATH=$(POCL_RT_PATH)/lib:$(VORTEX_DRV_PATH)/fpga:$(LD_LIBRARY_PATH) ./$(PROJECT) $(OPTS)
 
-run-asesim: $(PROJECT) kernel.bin   
+run-asesim: $(PROJECT) basic.bin   
 	LD_LIBRARY_PATH=$(POCL_RT_PATH)/lib:$(VORTEX_DRV_PATH)/asesim:$(LD_LIBRARY_PATH) ./$(PROJECT) $(OPTS)
 	
-run-vlsim: $(PROJECT) kernel.bin   
+run-vlsim: $(PROJECT) basic.bin   
 	LD_LIBRARY_PATH=$(POCL_RT_PATH)/lib:$(VORTEX_DRV_PATH)/vlsim:$(LD_LIBRARY_PATH) ./$(PROJECT) $(OPTS)
 
-run-rtlsim: $(PROJECT) kernel.bin   
+run-rtlsim: $(PROJECT) basic.bin   
 	LD_LIBRARY_PATH=$(POCL_RT_PATH)/lib:$(VORTEX_DRV_PATH)/rtlsim:$(LD_LIBRARY_PATH) ./$(PROJECT) $(OPTS)
 
 .depend: $(SRCS)

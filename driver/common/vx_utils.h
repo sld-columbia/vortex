@@ -7,5 +7,5 @@ uint64_t aligned_size(uint64_t size, uint64_t alignment);
 bool is_aligned(uint64_t addr, uint64_t alignment);
 
 #define CACHE_BLOCK_SIZE    64
-#define ALLOC_BASE_ADDR     0x00010000
+#define ALLOC_BASE_ADDR     0x80010000
 #define LOCAL_MEM_SIZE      0x07000000     // 4 GB 

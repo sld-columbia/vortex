@@ -17,7 +17,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const char* kernel_file = "kernel.bin";
+const char* kernel_file = "basic.bin";
 int test = -1;
 uint32_t count = 0;
 

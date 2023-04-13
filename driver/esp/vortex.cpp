@@ -30,6 +30,7 @@
 #define NUM_WARPS 2
 #define NUM_THREADS 4
 
+#define ESP_OFFSET 0x30000000
 #define ESP_BASE_ADDR 0xB0000000
 #define DEV_NAME "gt_vortex_rtl.0"
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,7 +42,7 @@ public:
             ALLOC_BASE_ADDR, 
             ALLOC_BASE_ADDR + LOCAL_MEM_SIZE,
             4096,            
-            CACHE_BLOCK_SIZE)
+            4096)
     {}
     
     ~vx_device() {}
@@ -299,8 +300,9 @@ extern int vx_copy_to_dev(vx_buffer_h hbuffer, uint64_t dev_maddr, uint64_t size
     void *buf_ptr;
     void *host_ptr = vx_host_ptr(hbuffer);
 
+    printf("size: %llu, dev_maddr: %llx, src_offset: %llx, dest_addr: %llx\n", size, dev_maddr, src_offset, ESP_OFFSET + dev_maddr);
     int fd = open("/dev/mem", O_RDWR);
-    buf_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, ESP_BASE_ADDR + dev_maddr);
+    buf_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, ESP_OFFSET + dev_maddr);
     close(fd);
 
     if (buf_ptr == MAP_FAILED)
@@ -320,7 +322,7 @@ extern int vx_copy_from_dev(vx_buffer_h hbuffer, uint64_t dev_maddr, uint64_t si
     void *host_ptr = vx_host_ptr(hbuffer);
 
     int fd = open("/dev/mem", O_RDWR);
-    buf_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, ESP_BASE_ADDR + dev_maddr);
+    buf_ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, ESP_OFFSET + dev_maddr);
     close(fd);
 
     if (buf_ptr == MAP_FAILED)
@@ -338,14 +340,14 @@ extern int vx_start(vx_device_h hdevice) {
     vx_device *device = ((vx_device*)hdevice);
     struct gt_vortex_rtl_access vortex_desc;
     vortex_desc.VX_BUSY_INT = 0;
-    vortex_desc.BASE_ADDR = ESP_BASE_ADDR;
+    vortex_desc.BASE_ADDR = ESP_OFFSET;
     vortex_desc.START_VORTEX = 1;
     vortex_desc.src_offset = 0;
     vortex_desc.dst_offset = 0;
     vortex_desc.esp.run = 1;
     vortex_desc.esp.p2p_store = 0;
     vortex_desc.esp.p2p_nsrcs = 0;
-    vortex_desc.esp.coherence = ACC_COH_RECALL;
+    vortex_desc.esp.coherence = ACC_COH_NONE;
     vortex_desc.esp.third_party = 1;
 
 

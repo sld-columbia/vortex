@@ -1,7 +1,7 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#define KERNEL_ARG_DEV_MEM_ADDR 0x7ffff000
+#define KERNEL_ARG_DEV_MEM_ADDR 0x87fff000
 
 typedef struct {
   uint32_t count;
