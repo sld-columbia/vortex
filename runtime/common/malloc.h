@@ -69,8 +69,9 @@ public:
     // Align allocation size
     size = alignSize(size, pageAlign_);
 
-    // Check if the reservation is within memory capacity bounds
-    if (addr + size > capacity_) {
+    // Check if the reservation is within addressable memory bounds.
+    auto limit = baseAddress_ + capacity_;
+    if (limit < baseAddress_ || addr + size < addr || addr + size > limit) {
       printf("error: address range out of bounds\n");
       return -1;
     }
@@ -486,22 +487,44 @@ private:
 
     page_t* current = pages_;
     uint64_t endOfLastPage = baseAddress_;
+    uint64_t limit = baseAddress_ + capacity_;
+    if (limit < baseAddress_) {
+      return false;
+    }
 
     while (current != nullptr) {
       uint64_t startOfCurrentPage = current->addr;
-      if ((endOfLastPage + size) <= startOfCurrentPage) {
+      uint64_t endOfCurrentPage = current->addr + current->size;
+      if (endOfCurrentPage < current->addr) {
+        return false;
+      }
+
+      // Reserved pages may live below the user allocation base (for example
+      // low-address kernels in the ESP flow). They still count for overlap
+      // checks, but they must not pull normal allocations below baseAddress_.
+      if (endOfCurrentPage <= baseAddress_) {
+        current = current->next;
+        continue;
+      }
+
+      if (startOfCurrentPage < baseAddress_) {
+        startOfCurrentPage = baseAddress_;
+      }
+
+      if ((endOfLastPage + size) >= endOfLastPage && (endOfLastPage + size) <= startOfCurrentPage) {
         *addr = endOfLastPage;
         return true;
       }
-      // Update the end of the last page to the end of the current page
-      // Move to the next page in the sorted list
-      endOfLastPage = current->addr + current->size;
+
+      if (endOfCurrentPage > endOfLastPage) {
+        endOfLastPage = endOfCurrentPage;
+      }
       current = current->next;
     }
 
     // If no suitable gap is found, place the new page at the end of the last page
     // Check if the allocator has enough capacity
-    if ((endOfLastPage + size) <= capacity_) {
+    if ((endOfLastPage + size) >= endOfLastPage && (endOfLastPage + size) <= limit) {
       *addr = endOfLastPage;
       return true;
     }

@@ -32,10 +32,16 @@ all: $(DESTDIR)/$(PROJECT)
 
 driver: $(DESTDIR)/librtlsim.so
 
+.PHONY: force-stub-runtime
+force-stub-runtime:
+
+$(DESTDIR)/libvortex.so: force-stub-runtime
+	DESTDIR=$(DESTDIR) $(MAKE) -B -C $(ROOT_DIR)/runtime/stub CONFIGS="$(CONFIGS)"
+
 $(DESTDIR)/librtlsim.so:
 	DESTDIR=$(DESTDIR) $(MAKE) -C $(ROOT_DIR)/sim/rtlsim $(DESTDIR)/librtlsim.so
 
-$(DESTDIR)/$(PROJECT): $(SRCS) $(DESTDIR)/librtlsim.so
+$(DESTDIR)/$(PROJECT): $(SRCS) $(DESTDIR)/librtlsim.so $(DESTDIR)/libvortex.so
 	$(CXX) $(CXXFLAGS) $(SRCS) $(LDFLAGS) -o $@
 
 clean-driver:
@@ -46,4 +52,4 @@ clean-runtime:
 
 clean: clean-driver clean-runtime
 
-.PHONY: all driver clean-driver clean-runtime clean
+.PHONY: all driver force-stub-runtime clean-driver clean-runtime clean

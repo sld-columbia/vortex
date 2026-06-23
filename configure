@@ -18,7 +18,7 @@ CURRENT_DIR=$(pwd)
 
 # Function to detect current OS
 detect_osversion() {
-    local osversion="unsupported"
+    local osversion="centos/7"
     if [ -f /etc/os-release ]; then
         . /etc/os-release  # Source the os-release file to get OS information
         case "$ID" in
@@ -26,6 +26,8 @@ detect_osversion() {
                 case "$VERSION_CODENAME" in
                     bionic) osversion="ubuntu/bionic";;
                     focal) osversion="ubuntu/focal";;
+                    jammy) osversion="ubuntu/focal";;
+                    noble) osversion="ubuntu/focal";;
                     # Add new versions as needed
                 esac
                 ;;

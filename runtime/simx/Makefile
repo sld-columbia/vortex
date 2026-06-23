@@ -28,10 +28,16 @@ all: $(DESTDIR)/$(PROJECT)
 
 driver: $(DESTDIR)/libsimx.so
 
+.PHONY: force-stub-runtime
+force-stub-runtime:
+
+$(DESTDIR)/libvortex.so: force-stub-runtime
+	DESTDIR=$(DESTDIR) $(MAKE) -B -C $(ROOT_DIR)/runtime/stub CONFIGS="$(CONFIGS)"
+
 $(DESTDIR)/libsimx.so:
 	DESTDIR=$(DESTDIR) $(MAKE) -C $(ROOT_DIR)/sim/simx $(DESTDIR)/libsimx.so
 
-$(DESTDIR)/$(PROJECT): $(SRCS) $(DESTDIR)/libsimx.so
+$(DESTDIR)/$(PROJECT): $(SRCS) $(DESTDIR)/libsimx.so $(DESTDIR)/libvortex.so
 	$(CXX) $(CXXFLAGS) $(SRCS) $(LDFLAGS) -o $@
 
 clean-driver:
@@ -42,4 +48,4 @@ clean-runtime:
 
 clean: clean-driver clean-runtime
 
-.PHONY: all driver clean-driver clean-runtime clean
+.PHONY: all driver force-stub-runtime clean-driver clean-runtime clean

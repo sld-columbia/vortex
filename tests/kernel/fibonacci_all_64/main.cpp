@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <cstdint>
 
-volatile int num = 9;
-volatile int fib = 0;
+volatile uint64_t num = 9;
+volatile uint64_t fib = 0;
 
-int fibonacci(int n) {
+uint64_t fibonacci(uint64_t n) {
    if (n <= 1) {
       return n;
    }

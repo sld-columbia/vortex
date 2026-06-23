@@ -50,7 +50,7 @@
 `define PERF_CTR_BITS   44
 
 `ifndef NDEBUG
-`define UUID_WIDTH      44
+`define UUID_WIDTH      1 // ESP MODIFIED was 44 initially
 `else
 `define UUID_WIDTH      1
 `endif
@@ -305,7 +305,7 @@
 
 `define ADDR_TYPE_FLUSH         0
 `define ADDR_TYPE_IO            1
-`define ADDR_TYPE_LOCAL         2 // shoud be last since optional
+`define ADDR_TYPE_LOCAL         2 // should be last since optional
 `define ADDR_TYPE_WIDTH         (`ADDR_TYPE_LOCAL + `LMEM_ENABLED)
 
 `define VX_MEM_BYTEEN_WIDTH     `L3_LINE_SIZE

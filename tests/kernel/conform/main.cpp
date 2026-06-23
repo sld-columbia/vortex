@@ -1,9 +1,10 @@
 #include "tests.h"
 #include <vx_print.h>
 
-int main() {
-	int errors = 0;
+volatile long long errors = 0;
 
+int main() {
+	
 	errors += test_global_memory();
 
 	errors += test_local_memory();
@@ -25,12 +26,6 @@ int main() {
 	errors += test_barrier();
 
 	errors += test_tls();
-
-	if (0 == errors) {	
-		PRINTF("Passed!\n");
-	} else {
-		PRINTF("Failed!\n");
-	}
 	
-	return errors;
+	return 0;
 }

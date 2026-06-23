@@ -7,10 +7,10 @@ XRT_DEVICE_INDEX ?= 0
 
 ifeq ($(XLEN),64)
 VX_CFLAGS += -march=rv64imafd -mabi=lp64d
-STARTUP_ADDR ?= 0x180000000
+STARTUP_ADDR ?= 0x00000000
 else
 VX_CFLAGS += -march=rv32imaf -mabi=ilp32f
-STARTUP_ADDR ?= 0x80000000
+STARTUP_ADDR ?= 0x00000000
 endif
 
 LLVM_CFLAGS += --sysroot=$(RISCV_SYSROOT)
@@ -39,6 +39,7 @@ VX_CFLAGS += -O3 -mcmodel=medany -fno-rtti -fno-exceptions -nostartfiles -nostdl
 VX_CFLAGS += -I$(VORTEX_KN_PATH)/include -I$(ROOT_DIR)/hw
 VX_CFLAGS += -DXLEN_$(XLEN)
 VX_CFLAGS += -DNDEBUG
+VX_CFLAGS += $(CONFIGS)
 
 VX_LIBS += -L$(LIBC_VORTEX)/lib -lm -lc
 
@@ -49,6 +50,7 @@ VX_LDFLAGS += -Wl,-Bstatic,--gc-sections,-T,$(VORTEX_KN_PATH)/scripts/link$(XLEN
 
 CXXFLAGS += -std=c++11 -Wall -Wextra -pedantic -Wfatal-errors
 CXXFLAGS += -I$(VORTEX_RT_PATH)/include -I$(ROOT_DIR)/hw
+CXXFLAGS += $(CONFIGS)
 
 LDFLAGS += -L$(ROOT_DIR)/runtime -lvortex
 

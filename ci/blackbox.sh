@@ -206,8 +206,12 @@ status=0
 # ensure config update
 make -C $ROOT_DIR/hw config > /dev/null
 
-# ensure the stub driver is present
-make -C $ROOT_DIR/runtime/stub > /dev/null
+# ensure the stub runtime is rebuilt with the same CONFIGS used for the driver
+if [ $REBUILD -ne 0 ] && { [ $REBUILD -eq 1 ] || [ "$CONFIGS+$DEBUG+$SCOPE" != "$LAST_CONFIGS" ]; };
+then
+    make -C $ROOT_DIR/runtime/stub clean > /dev/null
+fi
+CONFIGS="$CONFIGS" make -C $ROOT_DIR/runtime/stub > /dev/null
 
 if [ $DEBUG -ne 0 ]
 then

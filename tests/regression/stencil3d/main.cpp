@@ -168,7 +168,7 @@ static void show_usage()
 static void parse_args(int argc, char **argv)
 {
     int c;
-    while ((c = getopt(argc, argv, "n:t:k:h?")) != -1)
+    while ((c = getopt(argc, argv, "n:b:k:h?")) != -1)
     {
         switch (c)
         {

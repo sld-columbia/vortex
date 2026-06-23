@@ -16,7 +16,8 @@
 # exit when any command fails
 set -e
 
-REPOSITORY=https://github.com/vortexgpgpu/vortex-toolchain-prebuilt/raw/master
+TOOLCHAIN_PREBUILT_COMMIT=2ac91c8b4578f6e63accd13c994bef890c899016
+REPOSITORY=https://github.com/vortexgpgpu/vortex-toolchain-prebuilt/raw/$TOOLCHAIN_PREBUILT_COMMIT
 TOOLDIR=${TOOLDIR:=@TOOLDIR@}
 OSVERSION=${OSVERSION:=@OSVERSION@}
 

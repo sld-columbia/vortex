@@ -80,6 +80,30 @@
 `define FLEN 32
 `endif
 
+`ifdef ESP_GT_VORTEX_NUM_CLUSTERS
+`ifndef NUM_CLUSTERS
+`define NUM_CLUSTERS `ESP_GT_VORTEX_NUM_CLUSTERS
+`endif
+`endif
+
+`ifdef ESP_GT_VORTEX_NUM_CORES
+`ifndef NUM_CORES
+`define NUM_CORES `ESP_GT_VORTEX_NUM_CORES
+`endif
+`endif
+
+`ifdef ESP_GT_VORTEX_NUM_WARPS
+`ifndef NUM_WARPS
+`define NUM_WARPS `ESP_GT_VORTEX_NUM_WARPS
+`endif
+`endif
+
+`ifdef ESP_GT_VORTEX_NUM_THREADS
+`ifndef NUM_THREADS
+`define NUM_THREADS `ESP_GT_VORTEX_NUM_THREADS
+`endif
+`endif
+
 `ifdef XLEN_64
 `ifdef FLEN_32
     `define FPU_RV64F
@@ -91,13 +115,28 @@
 `endif
 
 `ifndef NUM_CORES
+`ifdef GT_VORTEX_NUM_CORES
+`define NUM_CORES `GT_VORTEX_NUM_CORES
+`endif
+`endif
+`ifndef NUM_CORES
 `define NUM_CORES 1
 `endif
 
 `ifndef NUM_WARPS
+`ifdef GT_VORTEX_NUM_WARPS
+`define NUM_WARPS `GT_VORTEX_NUM_WARPS
+`endif
+`endif
+`ifndef NUM_WARPS
 `define NUM_WARPS 4
 `endif
 
+`ifndef NUM_THREADS
+`ifdef GT_VORTEX_NUM_THREADS
+`define NUM_THREADS `GT_VORTEX_NUM_THREADS
+`endif
+`endif
 `ifndef NUM_THREADS
 `define NUM_THREADS 4
 `endif
@@ -128,7 +167,7 @@
 `endif
 
 `ifndef MEM_BLOCK_SIZE
-`define MEM_BLOCK_SIZE 64
+`define MEM_BLOCK_SIZE 8
 `endif
 
 `ifndef MEM_ADDR_WIDTH
@@ -151,45 +190,77 @@
 `define L3_LINE_SIZE `MEM_BLOCK_SIZE
 `endif
 
+
+/* 
+
+Ariane Memory Map (https://esp.cs.columbia.edu/docs/specs/esp_address_map.pdf)
+
+|      Address Range      |               Usage                 |
+-----------------------------------------------------------------
+| 0x00000000 - 0x0001FFFF |           Bootrom (128KiB)          |
+| 0x02000000 - 0x020BFFFF |        RISC-V CLINT (768KiB)        |
+| 0x04000000 - 0x07FFFFFF |        SLM scratchpad (64MiB)       |
+| 0x30100000 - 0x3017FFFF |         Frame buffer (512KiB)       |
+| 0x60000000 - 0x6FFFFFFF |     I/O and registers (256MiB)      |
+| 0x80000000 - 0xBFFFFFFF |          Main Memory (1GiB)         |
+| 0xC0000000 - 0xFFFFFFFF | LPDDR scratchpad (1GiB) - GF12 only |
+
+Unused Address Ranges
+
+|      Address Range      |    Size   |
+--------------------------------------
+| 0x00020000 - 0x01FFFFFF | 31.875MiB |
+| 0x020C0000 - 0x03FFFFFF | 31.25MiB  |
+| 0x08000000 - 0x300FFFFF | 641MiB    |
+| 0x30180000 - 0x5FFFFFFF | 766.5MiB  |
+| 0x70000000 - 0x7FFFFFFF | 256MiB    |
+
+
+*/
+
+//Vortex 64-bit Memory Map (currently incompatible with ESP)
+
 `ifdef XLEN_64
 
 `ifndef STACK_BASE_ADDR
-`define STACK_BASE_ADDR 64'h1FFFF0000
+`define STACK_BASE_ADDR 64'h0FEF0000 // 16KB-aligned and below IO/USER space to avoid overlap with runtime buffers
 `endif
 
 `ifndef STARTUP_ADDR
-`define STARTUP_ADDR    64'h080000000
+`define STARTUP_ADDR    64'h00000000 //Originally 64'h080000000
 `endif
 
 `ifndef USER_BASE_ADDR
-`define USER_BASE_ADDR  64'h000010000
+`define USER_BASE_ADDR  64'h0FF10000 //Originally 64'h000010000
 `endif
 
 `ifndef IO_BASE_ADDR
-`define IO_BASE_ADDR    64'h000000040
+`define IO_BASE_ADDR    64'h0FF00000 //Originally 64'h000000040 
 `endif
+
+//Vortex 32-bit Memory Map
 
 `else
 
 `ifndef STACK_BASE_ADDR
-`define STACK_BASE_ADDR 32'hFFFF0000
+`define STACK_BASE_ADDR 32'h0FEF0000 // 16KB-aligned and below IO/USER space to avoid overlap with runtime buffers
 `endif
 
 `ifndef STARTUP_ADDR
-`define STARTUP_ADDR    32'h80000000
+`define STARTUP_ADDR    32'h00000000 //Originally 32'h80000000
 `endif
 
 `ifndef USER_BASE_ADDR
-`define USER_BASE_ADDR  32'h00010000
+`define USER_BASE_ADDR  32'h0FF10000//Originally 32'h00010000
 `endif
 
 `ifndef IO_BASE_ADDR
-`define IO_BASE_ADDR    32'h00000040
+`define IO_BASE_ADDR    32'h0FF00000//Originally 32'h00000040
 `endif
 
 `endif
 
-`define IO_END_ADDR     `USER_BASE_ADDR
+`define IO_END_ADDR    `USER_BASE_ADDR  
 
 `ifndef LMEM_LOG_SIZE
 `define LMEM_LOG_SIZE   14
@@ -214,7 +285,7 @@
 `endif
 `define STACK_SIZE      (1 << `STACK_LOG2_SIZE)
 
-`define RESET_DELAY 8
+`define RESET_DELAY 16
 
 `ifndef STALL_TIMEOUT
 `define STALL_TIMEOUT   (100000 * (1 ** (`L2_ENABLED + `L3_ENABLED)))

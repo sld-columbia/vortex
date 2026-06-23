@@ -4,21 +4,21 @@ include $(ROOT_DIR)/config.mk
 all: unittest kernel regression opencl riscv
 
 unittest:
-	$(MAKE) -C unittest
+	$(MAKE) CXX=$(CXX) -C unittest
 
 kernel:
-	$(MAKE) -C kernel
+	$(MAKE) CXX=$(CXX) -C kernel
 
 regression:
-	$(MAKE) -C regression
+	$(MAKE) CXX=$(CXX) -C regression
 
 opencl:
 ifneq ($(XLEN),64)
-	$(MAKE) -C opencl
+	$(MAKE) CXX=$(CXX) -C opencl
 endif
 
 riscv:
-	$(MAKE) -C riscv
+	$(MAKE) CXX=$(CXX) -C riscv
 
 clean:
 	$(MAKE) -C unittest clean

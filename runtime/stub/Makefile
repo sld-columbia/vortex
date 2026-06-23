@@ -7,6 +7,7 @@ SRC_DIR := $(VORTEX_HOME)/runtime/stub
 CXXFLAGS += -std=c++11 -Wall -Wextra -pedantic -Wfatal-errors
 CXXFLAGS += -I$(INC_DIR) -I$(COMMON_DIR) -I$(ROOT_DIR)/hw -I$(SIM_DIR)/common
 CXXFLAGS += -fPIC
+CXXFLAGS += $(CONFIGS)
 
 LDFLAGS += -shared -pthread -ldl
 

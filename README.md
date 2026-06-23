@@ -100,6 +100,11 @@ echo "source <build-path>/ci/toolchain_env.sh" >> ~/.bashrc
 ```sh
 ../configure
 ```
+- If you override hardware configuration macros (for example `NUM_CORES`, `NUM_WARPS`, `NUM_THREADS`) via `CONFIGS`, make sure runtime and test binaries are rebuilt with the same `CONFIGS` values used for the RTL instance.
+```sh
+make CONFIGS="<matching-defines>" software
+make CONFIGS="<matching-defines>" tests
+```
 - To debug the GPU, you can generate a "run.log" trace. see /docs/debugging.md for more information.
 ```sh
 ./ci/blackbox.sh --app=demo --debug=3

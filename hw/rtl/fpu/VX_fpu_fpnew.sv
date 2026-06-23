@@ -17,7 +17,7 @@
 
 module VX_fpu_fpnew
     import VX_fpu_pkg::*;
-    import fpnew_pkg::*;
+    import fpnew_pkg_vortex::*;
     import cf_math_pkg::*;
     import defs_div_sqrt_mvp::*;
 #(
@@ -55,7 +55,7 @@ module VX_fpu_fpnew
     localparam LATENCY_FDIVSQRT = `MAX(`LATENCY_FDIV, `LATENCY_FSQRT);
     localparam RSP_DATAW = (NUM_LANES * `XLEN) + 1 + $bits(fflags_t) + TAG_WIDTH;
 
-    localparam fpnew_pkg::fpu_features_t FPU_FEATURES = '{
+    localparam fpnew_pkg_vortex::fpu_features_t FPU_FEATURES = '{
         Width:         unsigned'(`XLEN),
         EnableVectors: 1'b0,
     `ifdef XLEN_64
@@ -73,16 +73,16 @@ module VX_fpu_fpnew
     `endif
     };
 
-    localparam fpnew_pkg::fpu_implementation_t FPU_IMPLEMENTATION = '{
+    localparam fpnew_pkg_vortex::fpu_implementation_t FPU_IMPLEMENTATION = '{
       PipeRegs:'{'{`LATENCY_FMA, 0, 0, 0, 0}, // ADDMUL
                  '{default: unsigned'(LATENCY_FDIVSQRT)}, // DIVSQRT
                  '{default: `LATENCY_FNCP}, // NONCOMP
                  '{default: `LATENCY_FCVT}}, // CONV
-      UnitTypes:'{'{default: fpnew_pkg::PARALLEL}, // ADDMUL
-                  '{default: fpnew_pkg::MERGED}, // DIVSQRT
-                  '{default: fpnew_pkg::PARALLEL}, // NONCOMP
-                  '{default: fpnew_pkg::MERGED}}, // CONV
-      PipeConfig: fpnew_pkg::DISTRIBUTED
+      UnitTypes:'{'{default: fpnew_pkg_vortex::PARALLEL}, // ADDMUL
+                  '{default: fpnew_pkg_vortex::MERGED}, // DIVSQRT
+                  '{default: fpnew_pkg_vortex::PARALLEL}, // NONCOMP
+                  '{default: fpnew_pkg_vortex::MERGED}}, // CONV
+      PipeConfig: fpnew_pkg_vortex::DISTRIBUTED
     };
 
     wire fpu_ready_in, fpu_valid_in;
@@ -93,37 +93,37 @@ module VX_fpu_fpnew
     reg [2:0][NUM_LANES-1:0][`XLEN-1:0] fpu_operands;
 
     wire [NUM_LANES-1:0][`XLEN-1:0] fpu_result;
-    fpnew_pkg::status_t fpu_status;
+    fpnew_pkg_vortex::status_t fpu_status;
 
-    fpnew_pkg::operation_e fpu_op;
+    fpnew_pkg_vortex::operation_e fpu_op;
     reg [`INST_FRM_BITS-1:0] fpu_rnd;
     reg fpu_op_mod;
     reg fpu_has_fflags, fpu_has_fflags_out;
-    fpnew_pkg::fp_format_e fpu_src_fmt, fpu_dst_fmt;
-    fpnew_pkg::int_format_e fpu_int_fmt;
+    fpnew_pkg_vortex::fp_format_e fpu_src_fmt, fpu_dst_fmt;
+    fpnew_pkg_vortex::int_format_e fpu_int_fmt;
 
     `UNUSED_VAR (fmt)
 
     always @(*) begin
-        fpu_op          = fpnew_pkg::operation_e'('x);
+        fpu_op          = fpnew_pkg_vortex::operation_e'('x);
         fpu_rnd         = frm;
         fpu_op_mod      = 0;
         fpu_has_fflags  = 1;
         fpu_operands[0] = dataa;
         fpu_operands[1] = datab;
         fpu_operands[2] = datac;
-        fpu_dst_fmt     = fpnew_pkg::FP32;
-        fpu_int_fmt     = fpnew_pkg::INT32;
+        fpu_dst_fmt     = fpnew_pkg_vortex::FP32;
+        fpu_int_fmt     = fpnew_pkg_vortex::INT32;
 
     `ifdef FLEN_64
         if (fmt[0]) begin
-            fpu_dst_fmt = fpnew_pkg::FP64;
+            fpu_dst_fmt = fpnew_pkg_vortex::FP64;
         end
     `endif
 
     `ifdef XLEN_64
         if (fmt[1]) begin
-            fpu_int_fmt = fpnew_pkg::INT64;
+            fpu_int_fmt = fpnew_pkg_vortex::INT64;
         end
     `endif
 
@@ -131,37 +131,37 @@ module VX_fpu_fpnew
 
         case (op_type)
             `INST_FPU_ADD: begin
-                fpu_op = fpnew_pkg::ADD;
+                fpu_op = fpnew_pkg_vortex::ADD;
                 fpu_operands[1] = dataa;
                 fpu_operands[2] = datab;
             end
             `INST_FPU_SUB: begin
-                fpu_op = fpnew_pkg::ADD;
+                fpu_op = fpnew_pkg_vortex::ADD;
                 fpu_operands[1] = dataa;
                 fpu_operands[2] = datab;
                 fpu_op_mod = 1;
             end
-            `INST_FPU_MUL:   begin fpu_op = fpnew_pkg::MUL; end
-            `INST_FPU_DIV:   begin fpu_op = fpnew_pkg::DIV; end
-            `INST_FPU_SQRT:  begin fpu_op = fpnew_pkg::SQRT; end
-            `INST_FPU_MADD:  begin fpu_op = fpnew_pkg::FMADD; end
-            `INST_FPU_MSUB:  begin fpu_op = fpnew_pkg::FMADD; fpu_op_mod = 1; end
-            `INST_FPU_NMADD: begin fpu_op = fpnew_pkg::FNMSUB; fpu_op_mod = 1; end
-            `INST_FPU_NMSUB: begin fpu_op = fpnew_pkg::FNMSUB; end
+            `INST_FPU_MUL:   begin fpu_op = fpnew_pkg_vortex::MUL; end
+            `INST_FPU_DIV:   begin fpu_op = fpnew_pkg_vortex::DIV; end
+            `INST_FPU_SQRT:  begin fpu_op = fpnew_pkg_vortex::SQRT; end
+            `INST_FPU_MADD:  begin fpu_op = fpnew_pkg_vortex::FMADD; end
+            `INST_FPU_MSUB:  begin fpu_op = fpnew_pkg_vortex::FMADD; fpu_op_mod = 1; end
+            `INST_FPU_NMADD: begin fpu_op = fpnew_pkg_vortex::FNMSUB; fpu_op_mod = 1; end
+            `INST_FPU_NMSUB: begin fpu_op = fpnew_pkg_vortex::FNMSUB; end
         `ifdef FLEN_64
-            `INST_FPU_F2F: begin fpu_op = fpnew_pkg::F2F; fpu_src_fmt = fmt[0] ? fpnew_pkg::FP32 : fpnew_pkg::FP64; end
+            `INST_FPU_F2F: begin fpu_op = fpnew_pkg_vortex::F2F; fpu_src_fmt = fmt[0] ? fpnew_pkg_vortex::FP32 : fpnew_pkg_vortex::FP64; end
         `endif
             `INST_FPU_F2I,
-            `INST_FPU_F2U: begin fpu_op = fpnew_pkg::F2I; fpu_op_mod = op_type[0]; end
+            `INST_FPU_F2U: begin fpu_op = fpnew_pkg_vortex::F2I; fpu_op_mod = op_type[0]; end
             `INST_FPU_I2F,
-            `INST_FPU_U2F: begin fpu_op = fpnew_pkg::I2F; fpu_op_mod = op_type[0]; end
-            `INST_FPU_CMP: begin fpu_op = fpnew_pkg::CMP; end
+            `INST_FPU_U2F: begin fpu_op = fpnew_pkg_vortex::I2F; fpu_op_mod = op_type[0]; end
+            `INST_FPU_CMP: begin fpu_op = fpnew_pkg_vortex::CMP; end
             `INST_FPU_MISC:begin
                 case (frm)
-                    0,1,2: begin fpu_op = fpnew_pkg::SGNJ; fpu_rnd = {1'b0, frm[1:0]}; fpu_has_fflags = 0; end // FSGNJ
-                    3:     begin fpu_op = fpnew_pkg::CLASSIFY; fpu_has_fflags = 0; end // CLASS
-                    4,5:   begin fpu_op = fpnew_pkg::SGNJ; fpu_rnd = 3'b011; fpu_op_mod = ~frm[0]; fpu_has_fflags = 0; end // FMV.X.W, FMV.W.X
-                    6,7:   begin fpu_op = fpnew_pkg::MINMAX; fpu_rnd = {2'b00, frm[0]}; end // MIN, MAX
+                    0,1,2: begin fpu_op = fpnew_pkg_vortex::SGNJ; fpu_rnd = {1'b0, frm[1:0]}; fpu_has_fflags = 0; end // FSGNJ
+                    3:     begin fpu_op = fpnew_pkg_vortex::CLASSIFY; fpu_has_fflags = 0; end // CLASS
+                    4,5:   begin fpu_op = fpnew_pkg_vortex::SGNJ; fpu_rnd = 3'b011; fpu_op_mod = ~frm[0]; fpu_has_fflags = 0; end // FMV.X.W, FMV.W.X
+                    6,7:   begin fpu_op = fpnew_pkg_vortex::MINMAX; fpu_rnd = {2'b00, frm[0]}; end // MIN, MAX
                 endcase
             end
             default:;
@@ -173,13 +173,13 @@ module VX_fpu_fpnew
         wire [(TAG_WIDTH+1)-1:0] fpu_tag;
         wire fpu_valid_out_uq;
         wire fpu_ready_in_uq;
-        fpnew_pkg::status_t fpu_status_uq;
+        fpnew_pkg_vortex::status_t fpu_status_uq;
         `UNUSED_VAR (fpu_tag)
         `UNUSED_VAR (fpu_valid_out_uq)
         `UNUSED_VAR (fpu_ready_in_uq)
         `UNUSED_VAR (fpu_status_uq)
 
-        fpnew_top #(
+        fpnew_top_vortex #(
             .Features       (FPU_FEATURES),
             .Implementation (FPU_IMPLEMENTATION),
             .TagType        (logic[(TAG_WIDTH+1)-1:0]),
@@ -189,7 +189,7 @@ module VX_fpu_fpnew
             .clk_i          (clk),
             .rst_ni         (~reset),
             .operands_i     ({fpu_operands[2][i], fpu_operands[1][i], fpu_operands[0][i]}),
-            .rnd_mode_i     (fpnew_pkg::roundmode_e'(fpu_rnd)),
+            .rnd_mode_i     (fpnew_pkg_vortex::roundmode_e'(fpu_rnd)),
             .op_i           (fpu_op),
             .op_mod_i       (fpu_op_mod),
             .src_fmt_i      (fpu_src_fmt),

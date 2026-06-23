@@ -1,6 +1,7 @@
 [submodule "third_party/fpnew"]
 	path = third_party/fpnew
-	url = https://github.com/pulp-platform/fpnew.git
+	url = https://github.com/sld-columbia/cvfpu.git
+	branch = VORTEX
 [submodule "third_party/softfloat"]
 	path = third_party/softfloat
 	url = https://github.com/ucb-bar/berkeley-softfloat-3.git

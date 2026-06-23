@@ -86,6 +86,15 @@ static void __attribute__ ((noinline)) process_remaining_threads() {
   uint32_t thread_id = vx_thread_id();
   uint32_t task_id = targs->remain_tasks_offset + thread_id;
 
+  __local_group_id = 0;
+  threadIdx.x = 0;
+  threadIdx.y = 0;
+  threadIdx.z = 0;
+
+  blockIdx.x = task_id % gridDim.x;
+  blockIdx.y = (task_id / gridDim.x) % gridDim.y;
+  blockIdx.z = task_id / (gridDim.x * gridDim.y);
+
   (targs->callback)((void*)targs->arg);
 }
 

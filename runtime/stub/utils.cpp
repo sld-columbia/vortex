@@ -16,7 +16,6 @@
 #include <iostream>
 #include <fstream>
 #include <list>
-#include <cstring>
 #include <vector>
 #include <unordered_map>
 #include <vortex.h>
@@ -47,29 +46,72 @@ int get_profiling_mode() {
 }
 
 extern int vx_upload_kernel_bytes(vx_device_h hdevice, const void* content, uint64_t size, vx_buffer_h* hbuffer) {
-  if (nullptr == hdevice || nullptr == content || size <= 8 || nullptr == hbuffer)
+  if (nullptr == hdevice || nullptr == content || size <= (2 * sizeof(uint64_t)) || nullptr == hbuffer)
     return -1;
 
   auto bytes = reinterpret_cast<const uint64_t*>(content);
 
   auto min_vma = *bytes++;
   auto max_vma = *bytes++;
-  auto bin_size = size - 2 * 8;
+  auto bin_size = size - 2 * sizeof(uint64_t);
+  if (max_vma < min_vma)
+    return -1;
+
+  // The vxbin image encodes memory range from ELF LOAD segments. Kernel startup
+  // also writes per-hart runtime/TLS state above _end, so reserve extra headroom
+  // to keep those writes inside the kernel's RW ACL range.
   auto runtime_size = (max_vma - min_vma);
+  if (runtime_size < bin_size) {
+    runtime_size = bin_size;
+  }
+
+  uint64_t num_cores = 1, num_warps = 1, num_threads = 1;
+  CHECK_ERR(vx_dev_caps(hdevice, VX_CAPS_NUM_CORES, &num_cores), {
+    return err;
+  });
+  CHECK_ERR(vx_dev_caps(hdevice, VX_CAPS_NUM_WARPS, &num_warps), {
+    return err;
+  });
+  CHECK_ERR(vx_dev_caps(hdevice, VX_CAPS_NUM_THREADS, &num_threads), {
+    return err;
+  });
+
+  constexpr uint64_t kPerHartRuntimeGuard = 0x100; // 256 bytes per hart
+  constexpr uint64_t kFixedRuntimeGuard = 0x1000;  // minimum 4 KiB slack
+  uint64_t total_harts = num_cores * num_warps * num_threads;
+  uint64_t runtime_guard = kFixedRuntimeGuard + total_harts * kPerHartRuntimeGuard;
+
+  uint64_t reserved_size = runtime_size + runtime_guard;
+  if (reserved_size < runtime_size) {
+    return -1;
+  }
+  reserved_size = aligned_size(reserved_size, CACHE_BLOCK_SIZE);
+  if (reserved_size < runtime_size) {
+    return -1;
+  }
+
+  // For kernels linked at low addresses (ESP flow), keep the reservation below
+  // user allocation base to avoid overlap with runtime-managed data buffers.
+  if (min_vma < USER_BASE_ADDR) {
+    uint64_t max_reserved_size = USER_BASE_ADDR - min_vma;
+    if (reserved_size > max_reserved_size) {
+      reserved_size = max_reserved_size & ~(CACHE_BLOCK_SIZE - 1);
+    }
+  }
+  if (reserved_size < bin_size) {
+    return -1;
+  }
 
   vx_buffer_h _hbuffer;
-  CHECK_ERR(vx_mem_reserve(hdevice, min_vma, runtime_size, 0, &_hbuffer), {
+  CHECK_ERR(vx_mem_reserve(hdevice, min_vma, reserved_size, 0, &_hbuffer), {
     return err;
   });
 
-  // mask binary region as read-only
-  CHECK_ERR(vx_mem_access(_hbuffer, 0, bin_size, VX_MEM_READ), {
-    vx_mem_free(_hbuffer);
-    return err;
-  });
-
-  // mark global variables region as read-write
-  CHECK_ERR(vx_mem_access(_hbuffer, bin_size, runtime_size - bin_size, VX_MEM_READ_WRITE), {
+  // The flattened vxbin image can still contain writable sections (for example
+  // .data/.tdata when kernels are linked at address 0 for ESP integration).
+  // Mark the full runtime range as RW to avoid false ACL write violations in
+  // simulators while preserving explicit buffer ACL checks.
+  CHECK_ERR(vx_mem_access(_hbuffer, 0, reserved_size, VX_MEM_READ_WRITE), {
     vx_mem_free(_hbuffer);
     return err;
   });
